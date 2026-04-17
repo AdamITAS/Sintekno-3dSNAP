@@ -1,40 +1,80 @@
-🚀 Sintekno3D
+# 🚀 Sintekno3D
 
-Sintekno3D is a browser-based 3D creation and cinematic editor that allows users to import, edit, animate, and export 3D scenes directly in the browser — no installation required.
+### Browser-based cinematic 3D creation platform
 
-It combines real-time 3D editing, camera keyframing, lighting controls, audio syncing, and video export in one lightweight web system.
+Sintekno3D is a web-based 3D editor that allows users to create, animate, and export cinematic 3D scenes directly in the browser — no installation required.
 
-🎯 Features
-Import 3D models (.glb, .gltf, .obj)
-Scene lighting & environment controls
-Camera keyframe animation system
-Audio track integration
-Post-processing (color, contrast, bloom-style effects)
-Real-time preview
-Video export system
-Browser-based (no installation required)
-🌍 Purpose
+It combines real-time 3D editing, camera keyframing, lighting control, audio syncing, and video export into a single lightweight system built for creators.
 
-Sintekno3D was built to simplify 3D creation and make cinematic rendering accessible directly in the browser, without complex software like traditional desktop engines.
+---
 
-👨‍💻 Creator
+## 🎯 Features
 
-Built and designed by Adam Khayari.
+- Import 3D models (.glb, .gltf, .obj)
+- Scene environment controls (sky, ground, HDRI lighting)
+- Cinematic camera system with keyframe animation
+- Audio track integration for timing and sync
+- Post-processing (color, contrast, exposure, visual effects)
+- Real-time preview of scenes and animations
+- Video export directly from the browser
+- Lightweight and accessible (runs on most devices)
 
-The project was developed through iterative problem-solving, debugging, and system design, also social platforms used as a tool for acceleration and experimentation.
+---
 
-🤝 Contributors / Support
-Ꝁɇɍøsɇnɇ乂ɃMW ✝ — helped with early testing, Discord server setup, and issue identification as one of the first active community members and helpers.
-⚙️ Tech Stack
-WebGL / Three.js (or your actual stack if different)
-JavaScript / TypeScript
-HTML / CSS
+## 🌍 Why Sintekno3D
 
-development workflow
-🔗 Live Demo
+Traditional 3D software is powerful but often complex, heavy, and slow to learn.
 
-[[Sintekno](https://sintekno-3dsnap.vercel.app/)]
+Sintekno3D focuses on:
+- fast creation
+- cinematic storytelling
+- browser accessibility
+- simplified production workflow
 
-📌 Notes
+It is designed for creators who want speed and control without desktop software complexity.
 
-This project is actively evolving and experimental. Features may change as development continues.
+---
+
+## 👨‍💻 Creator
+
+Built and designed by **Adam Khayari**
+
+Independent developer and athlete building experimental browser-based tools for 3D creation, animation systems, and visual production workflows.
+
+---
+
+## 🤝 Contributors
+
+- Ꝁɇɍøsɇnɇ乂ɃMW ✝ — early testing, feedback, Discord server setup, and issue identification
+
+---
+
+## ⚙️ Tech Stack
+
+- Three.js / WebGL
+- JavaScript (ES6+)
+- Web Audio API
+- HTML / CSS
+- Vercel deployment
+
+---
+
+## 🌐 Live Demo
+
+👉 https://sintekno3d.vercel.app/
+
+---
+
+## 📌 Status
+
+Actively developed • Early-stage SaaS • Experimental product
+
+Features are continuously evolving as the system improves.
+
+---
+
+## 💡 Notes
+
+Sintekno3D is an experimental project focused on simplifying 3D creation in the browser.
+
+It is not a traditional desktop engine, but a lightweight alternative designed for fast cinematic workflows and creative experimentation.
