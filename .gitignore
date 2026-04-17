@@ -1,0 +1,10 @@
+# Ignore everything
+*
+
+# Except our project files
+!.gitignore
+!index.html
+!package.json
+!vercel.json
+!editor/
+!editor/**

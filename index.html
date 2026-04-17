@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sintekno — 3D Video Editor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+    <style>
+        * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        body { font-family: 'Inter', sans-serif; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .nav-active { color: #0f172a !important; font-weight: 500; position: relative; }
+        .nav-active::after {
+            content: ''; position: absolute; bottom: -2px; left: 0;
+            width: 100%; height: 1px; background-color: #0f172a;
+        }
+
+        .hero-gradient {
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 40%, #334155 70%, #475569 100%);
+        }
+
+        .glow-orb {
+            position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15;
+            animation: float 8s ease-in-out infinite;
+        }
+        .glow-orb-2 { animation-delay: -3s; }
+        .glow-orb-3 { animation-delay: -5s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-30px) scale(1.05); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes rotate3d {
+            0% { transform: perspective(800px) rotateY(0deg) rotateX(5deg); }
+            50% { transform: perspective(800px) rotateY(15deg) rotateX(-3deg); }
+            100% { transform: perspective(800px) rotateY(0deg) rotateX(5deg); }
+        }
+
+        .animate-on-scroll { opacity: 0; transform: translateY(40px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .animate-on-scroll.visible { opacity: 1; transform: translateY(0); }
+        .animate-on-scroll.visible.delay-1 { transition-delay: 0.1s; }
+        .animate-on-scroll.visible.delay-2 { transition-delay: 0.2s; }
+        .animate-on-scroll.visible.delay-3 { transition-delay: 0.3s; }
+        .animate-on-scroll.visible.delay-4 { transition-delay: 0.4s; }
+        .animate-on-scroll.visible.delay-5 { transition-delay: 0.5s; }
+
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.12);
+            border-color: #CBD5E1;
+        }
+        .feature-card:hover .feature-icon {
+            background-color: #0F172A;
+            color: #FFFFFF;
+        }
+        .feature-icon {
+            transition: all 0.3s ease;
+        }
+
+        .timeline-line {
+            background: linear-gradient(to bottom, #E2E8F0, #0F172A, #E2E8F0);
+        }
+
+        .editor-mockup {
+            animation: rotate3d 10s ease-in-out infinite;
+            transform-style: preserve-3d;
+        }
+
+        .grid-bg {
+            background-image:
+                linear-gradient(rgba(226,232,240,0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(226,232,240,0.3) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #0F172A, #475569);
+            transform: scaleX(0);
+            transition: transform 0.5s ease;
+            transform-origin: left;
+        }
+        .stat-card:hover::before { transform: scaleX(1); }
+
+        .mobile-menu {
+            transform: translateX(100%);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .mobile-menu.open { transform: translateX(0); }
+
+        .lang-btn.active {
+            background-color: #0F172A;
+            color: #FFFFFF;
+        }
+
+        @media (max-width: 640px) {
+            .hero-title { font-size: 2.25rem !important; }
+        }
+    </style>
+</head>
+<body class="bg-white text-slate-900 overflow-x-hidden">
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 h-20 bg-white/90 backdrop-blur-md border-b border-slate-100 transition-all duration-300">
+        <div class="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
+            <!-- Logo -->
+            <a href="#" class="flex items-center gap-2.5 group">
+                <div class="w-9 h-9 bg-slate-900 rounded-lg flex items-center justify-center group-hover:bg-slate-800 transition-colors duration-150">
+                    <span class="iconify text-white text-lg" data-icon="mdi:cube-outline"></span>
+                </div>
+                <span class="text-lg font-semibold tracking-tight">Sintekno</span>
+            </a>
+
+            <!-- Desktop Nav -->
+            <div class="hidden md:flex items-center gap-8">
+                <a href="#features" class="nav-link text-sm text-slate-500 hover:text-slate-900 transition-colors duration-150 py-1" data-en="Features" data-it="Funzionalità">Features</a>
+                <a href="#about" class="nav-link text-sm text-slate-500 hover:text-slate-900 transition-colors duration-150 py-1" data-en="About" data-it="Chi siamo">About</a>
+                <a href="#how-it-works" class="nav-link text-sm text-slate-500 hover:text-slate-900 transition-colors duration-150 py-1" data-en="How It Works" data-it="Come funziona">How It Works</a>
+                <a href="#creator" class="nav-link text-sm text-slate-500 hover:text-slate-900 transition-colors duration-150 py-1" data-en="Creator" data-it="Creatore">Creator</a>
+            </div>
+
+            <!-- Right side -->
+            <div class="flex items-center gap-3">
+                <!-- Language Toggle -->
+                <div class="flex items-center bg-slate-100 rounded-lg p-0.5">
+                    <button onclick="setLang('en')" class="lang-btn active text-xs font-medium px-2.5 py-1.5 rounded-md transition-all duration-200">EN</button>
+                    <button onclick="setLang('it')" class="lang-btn text-xs font-medium px-2.5 py-1.5 rounded-md text-slate-500 hover:text-slate-700 transition-all duration-200">IT</button>
+                </div>
+
+                <!-- CTA -->
+                <a href="#cta" class="hidden md:inline-flex items-center gap-2 bg-slate-900 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-slate-800 transition-colors duration-150">
+                    <span data-en="Get Started" data-it="Inizia">Get Started</span>
+                    <span class="iconify text-base" data-icon="mdi:arrow-right"></span>
+                </a>
+
+                <!-- Mobile Hamburger -->
+                <button id="menuToggle" class="md:hidden w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-50 transition-colors">
+                    <span class="iconify text-2xl" data-icon="mdi:menu" id="menuIcon"></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="mobile-menu fixed top-0 right-0 bottom-0 w-80 max-w-[85vw] bg-white z-[60] shadow-2xl">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-10">
+                <span class="text-lg font-semibold tracking-tight">Sintekno</span>
+                <button id="menuClose" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-50 transition-colors">
+                    <span class="iconify text-2xl" data-icon="mdi:close"></span>
+                </button>
+            </div>
+            <div class="flex flex-col gap-1">
+                <a href="#features" class="mobile-nav-link text-base text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-4 py-3 rounded-lg transition-all" data-en="Features" data-it="Funzionalità">Features</a>
+                <a href="#about" class="mobile-nav-link text-base text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-4 py-3 rounded-lg transition-all" data-en="About" data-it="Chi siamo">About</a>
+                <a href="#how-it-works" class="mobile-nav-link text-base text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-4 py-3 rounded-lg transition-all" data-en="How It Works" data-it="Come funziona">How It Works</a>
+                <a href="#creator" class="mobile-nav-link text-base text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-4 py-3 rounded-lg transition-all" data-en="Creator" data-it="Creatore">Creator</a>
+            </div>
+            <div class="mt-8 pt-8 border-t border-slate-100">
+                <a href="#cta" class="mobile-nav-link flex items-center justify-center gap-2 w-full bg-slate-900 text-white text-sm font-medium px-5 py-3 rounded-lg hover:bg-slate-800 transition-colors">
+                    <span data-en="Get Started" data-it="Inizia">Get Started</span>
+                    <span class="iconify" data-icon="mdi:arrow-right"></span>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div id="menuOverlay" class="fixed inset-0 bg-black/20 backdrop-blur-sm z-[55] hidden opacity-0 transition-opacity duration-300"></div>
+
+    <!-- Hero Section -->
+    <section class="hero-gradient relative min-h-screen flex items-center overflow-hidden">
+        <!-- Glow Orbs -->
+        <div class="glow-orb w-96 h-96 bg-indigo-500 top-10 -left-20"></div>
+        <div class="glow-orb glow-orb-2 w-80 h-80 bg-cyan-500 bottom-20 right-10"></div>
+        <div class="glow-orb glow-orb-3 w-64 h-64 bg-purple-500 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+
+        <!-- Grid overlay -->
+        <div class="absolute inset-0 grid-bg opacity-30"></div>
+
+        <div class="relative max-w-7xl mx-auto px-6 pt-32 lg:pt-40 pb-24 lg:pb-32 w-full">
+            <div class="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
+                <!-- Text -->
+                <div>
+                    <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/10 rounded-full px-4 py-2 mb-8" style="animation: fadeInUp 0.8s ease forwards;">
+                        <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                        <span class="text-xs font-medium text-slate-300 tracking-wide uppercase" data-en="Now in Development" data-it="In Sviluppo">Now in Development</span>
+                    </div>
+
+                    <h1 class="hero-title text-4xl md:text-5xl lg:text-6xl font-semibold text-white leading-[1.1] tracking-tight mb-6" style="animation: fadeInUp 0.8s 0.15s ease both;">
+                        <span data-en="3D Video Editing," data-it="Montaggio Video 3D,">3D Video Editing,</span><br>
+                        <span class="font-serif italic text-slate-300" data-en="Reimagined." data-it="Reimmaginato.">Reimagined.</span>
+                    </h1>
+
+                    <p class="text-lg md:text-xl text-slate-400 leading-relaxed max-w-lg mb-10" style="animation: fadeInUp 0.8s 0.3s ease both;" data-en="Import your 3D models, build cinematic scenes with camera keyframes, and create stunning animations — all in one powerful editor." data-it="Importa i tuoi modelli 3D, crea scene cinematografiche con keyframe della camera e produce animazioni straordinarie — tutto in un unico editor potente.">
+                        Import your 3D models, build cinematic scenes with camera keyframes, and create stunning animations — all in one powerful editor.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-4" style="animation: fadeInUp 0.8s 0.45s ease both;">
+                        <a href="#cta" class="inline-flex items-center justify-center gap-2 bg-white text-slate-900 text-sm font-medium px-8 py-4 rounded-lg hover:bg-slate-50 transition-colors duration-150">
+                            <span data-en="Try Sintekno" data-it="Prova Sintekno">Try Sintekno</span>
+                            <span class="iconify" data-icon="mdi:arrow-right"></span>
+                        </a>
+                        <a href="#how-it-works" class="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-medium px-8 py-4 rounded-lg hover:bg-white/20 transition-colors duration-150">
+                            <span class="iconify" data-icon="mdi:play-circle-outline"></span>
+                            <span data-en="See How It Works" data-it="Vedi Come Funziona">See How It Works</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 3D Editor Mockup -->
+                <div class="relative flex items-center justify-center" style="animation: scaleIn 1s 0.5s ease both;">
+                    <div class="editor-mockup relative w-full max-w-lg">
+                        <!-- Fake editor window -->
+                        <div class="bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-slate-700/50 shadow-2xl overflow-hidden">
+                            <!-- Title bar -->
+                            <div class="flex items-center gap-2 px-4 py-3 border-b border-slate-700/50">
+                                <div class="w-3 h-3 rounded-full bg-red-400/80"></div>
+                                <div class="w-3 h-3 rounded-full bg-yellow-400/80"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-400/80"></div>
+                                <span class="ml-3 text-xs text-slate-500 font-medium">Sintekno — Untitled Scene</span>
+                            </div>
+                            <!-- Editor body -->
+                            <div class="flex">
+                                <!-- Sidebar -->
+                                <div class="w-12 bg-slate-900/60 border-r border-slate-700/50 flex flex-col items-center py-4 gap-4">
+                                    <div class="w-7 h-7 rounded bg-slate-700/50 flex items-center justify-center"><span class="iconify text-slate-400 text-sm" data-icon="mdi:cursor-default-outline"></span></div>
+                                    <div class="w-7 h-7 rounded bg-slate-600/80 flex items-center justify-center"><span class="iconify text-white text-sm" data-icon="mdi:cube-outline"></span></div>
+                                    <div class="w-7 h-7 rounded bg-slate-700/50 flex items-center justify-center"><span class="iconify text-slate-400 text-sm" data-icon="mdi:lightbulb-outline"></span></div>
+                                    <div class="w-7 h-7 rounded bg-slate-700/50 flex items-center justify-center"><span class="iconify text-slate-400 text-sm" data-icon="mdi:camera-outline"></span></div>
+                                </div>
+                                <!-- Viewport -->
+                                <div class="flex-1 aspect-[4/3] bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
+                                    <!-- 3D Grid -->
+                                    <div class="absolute inset-0" style="background-image: linear-gradient(rgba(100,116,139,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(100,116,139,0.15) 1px, transparent 1px); background-size: 30px 30px;"></div>
+                                    <!-- Fake 3D object -->
+                                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 border-2 border-cyan-400/60 rounded-lg" style="transform: translate(-50%, -50%) rotateX(25deg) rotateY(35deg); box-shadow: 0 0 40px rgba(34,211,238,0.15), inset 0 0 20px rgba(34,211,238,0.05);">
+                                        <div class="absolute inset-2 border border-cyan-400/30 rounded" style="transform: translateZ(10px);"></div>
+                                    </div>
+                                    <!-- Camera icon -->
+                                    <div class="absolute bottom-4 right-4 w-8 h-8 bg-slate-700/60 rounded-lg flex items-center justify-center">
+                                        <span class="iconify text-cyan-400 text-sm" data-icon="mdi:video-outline"></span>
+                                    </div>
+                                    <!-- Axis indicator -->
+                                    <div class="absolute top-4 left-4 flex flex-col items-start gap-0.5">
+                                        <span class="text-[10px] font-medium text-red-400">X</span>
+                                        <span class="text-[10px] font-medium text-green-400 ml-3">Y</span>
+                                        <span class="text-[10px] font-medium text-blue-400 ml-1">Z</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Timeline -->
+                            <div class="px-4 py-3 border-t border-slate-700/50">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <span class="iconify text-slate-500 text-xs" data-icon="mdi:play"></span>
+                                    <div class="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                        <div class="h-full w-2/5 bg-gradient-to-r from-cyan-400 to-indigo-400 rounded-full"></div>
+                                    </div>
+                                    <span class="text-[10px] text-slate-500 font-mono">00:02:14</span>
+                                </div>
+                                <div class="flex gap-1 h-6">
+                                    <div class="flex-1 bg-cyan-400/20 rounded border border-cyan-400/30 flex items-center px-2"><span class="text-[9px] text-cyan-300 font-medium truncate">Camera</span></div>
+                                    <div class="flex-1 bg-indigo-400/20 rounded border border-indigo-400/30 flex items-center px-2"><span class="text-[9px] text-indigo-300 font-medium truncate">Rotation</span></div>
+                                    <div class="flex-1 bg-purple-400/20 rounded border border-purple-400/30 flex items-center px-2"><span class="text-[9px] text-purple-300 font-medium truncate">Scale</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Floating badge -->
+                    <div class="absolute -bottom-4 -left-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-3 hidden lg:flex items-center gap-3" style="animation: float 6s ease-in-out infinite;">
+                        <div class="w-10 h-10 bg-emerald-400/20 rounded-lg flex items-center justify-center">
+                            <span class="iconify text-emerald-400 text-xl" data-icon="mdi:check-bold"></span>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-white" data-en="GLB Support" data-it="Supporto GLB">GLB Support</p>
+                            <p class="text-[10px] text-slate-400" data-en="Blender & more" data-it="Blender e altro">Blender & more</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom gradient fade -->
+        <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent"></div>
+    </section>
+
+    <!-- Trusted Formats -->
+    <section class="py-12 border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row items-center gap-6 md:gap-12">
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-widest whitespace-nowrap" data-en="Compatible with" data-it="Compatibile con">Compatible with</p>
+                <div class="flex flex-wrap items-center justify-center gap-8 md:gap-12">
+                    <div class="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors">
+                        <span class="iconify text-2xl" data-icon="mdi:cube-outline"></span>
+                        <span class="text-sm font-medium">.GLB</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors">
+                        <span class="iconify text-2xl" data-icon="mdi:file-3d"></span>
+                        <span class="text-sm font-medium">.GLTF</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors">
+                        <span class="iconify text-2xl" data-icon="mdi:blender-software"></span>
+                        <span class="text-sm font-medium">Blender</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors">
+                        <span class="iconify text-2xl" data-icon="mdi:file-outline"></span>
+                        <span class="text-sm font-medium">.OBJ</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors">
+                        <span class="iconify text-2xl" data-icon="mdi:file-star-outline"></span>
+                        <span class="text-sm font-medium">.FBX</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-24">
+        <div class="max-w-7xl mx-auto px-6">
+            <!-- Section header -->
+            <div class="max-w-2xl mx-auto text-center mb-16">
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4 animate-on-scroll" data-en="Features" data-it="Funzionalità">Features</p>
+                <h2 class="text-2xl md:text-4xl font-semibold tracking-tight mb-5 animate-on-scroll delay-1" data-en="Everything you need for 3D storytelling" data-it="Tutto ciò che serve per lo storytelling 3D">Everything you need for 3D storytelling</h2>
+                <p class="text-base md:text-lg text-slate-500 leading-relaxed animate-on-scroll delay-2" data-en="From model import to final render, Sintekno gives you professional-grade tools in a streamlined, intuitive interface." data-it="Dall'importazione del modello al render finale, Sintekno ti offre strumenti professionali in un'interfaccia fluida e intuitiva.">
+                    From model import to final render, Sintekno gives you professional-grade tools in a streamlined, intuitive interface.
+                </p>
+            </div>
+
+            <!-- Feature grid -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Feature 1 -->
+                <div class="feature-card bg-white border border-slate-200 rounded-xl p-8 animate-on-scroll delay-1">
+                    <div class="feature-icon w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mb-5">
+                        <span class="iconify text-xl text-slate-700" data-icon="mdi:import"></span>
+                    </div>
+                    <h3 class="text-base font-semibold tracking-tight mb-2" data-en="Universal 3D Import" data-it="Importazione 3D Universale">Universal 3D Import</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed" data-en="Drop in models from Blender, GLB, GLTF, OBJ, FBX and more. Sintekno handles the rest — materials, textures, and hierarchy included." data-it="Importa modelli da Blender, GLB, GLTF, OBJ, FBX e altri. Sintekno fa il resto — materiali, texture e gerarchia inclusi.">Drop in models from Blender, GLB, GLTF, OBJ, FBX and more. Sintekno handles the rest — materials, textures, and hierarchy included.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="feature-card bg-white border border-slate-200 rounded-xl p-8 animate-on-scroll delay-2">
+                    <div class="feature-icon w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mb-5">
+                        <span class="iconify text-xl text-slate-700" data-icon="mdi:camera-outline"></span>
+                    </div>
+                    <h3 class="text-base font-semibold tracking-tight mb-2" data-en="Camera Keyframing" data-it="Keyframe della Camera">Camera Keyframing</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed" data-en="Place your camera, set keyframes, and let Sintekno interpolate smooth cinematic paths. Dolly, pan, orbit — full control." data-it="Posiziona la camera, imposta i keyframe e lascia che Sintekno interpoli percorsi cinematografici fluidi. Dolly, pan, orbita — controllo totale.">Place your camera, set keyframes, and let Sintekno interpolate smooth cinematic paths. Dolly, pan, orbit — full control.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="feature-card bg-white border border-slate-200 rounded-xl p-8 animate-on-scroll delay-3">
+                    <div class="feature-icon w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mb-5">
+                        <span class="iconify text-xl text-slate-700" data-icon="mdi:rotate-3d-variant"></span>
+                    </div>
+                    <h3 class="text-base font-semibold tracking-tight mb-2" data-en="Object Animation" data-it="Animazione Oggetti">Object Animation</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed" data-en="Rotate, translate, and scale any object in your scene with precise keyframe controls. Easing curves included for natural motion." data-it="Ruota, trasla e scala qualsiasi oggetto nella tua scena con controlli keyframe precisi. Curve di easing incluse per un movimento naturale.">Rotate, translate, and scale any object in your scene with precise keyframe controls. Easing curves included for natural motion.</p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="feature-card bg-white border border-slate-200 rounded-xl p-8 animate-on-scroll delay-1">
+                    <div class="feature-icon w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mb-5">
+                        <span class="iconify text-xl text-slate-700" data-icon="mdi:timeline-clock-outline"></span>
+                    </div>
+                    <h3 class="text-base font-semibold tracking-tight mb-2" data-en="Timeline Editor" data-it="Editor Timeline">Timeline Editor</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed" data-en="A visual, multi-track timeline to manage all your animations. Drag keyframes, adjust timing, and preview in real-time." data-it="Una timeline visuale multi-traccia per gestire tutte le tue animazioni. Trascina keyframe, regola i tempi e anteprima in tempo reale.">A visual, multi-track timeline to manage all your animations. Drag keyframes, adjust timing, and preview in real-time.</p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="feature-card bg-white border border-slate-200 rounded-xl p-8 animate-on-scroll delay-2">
+                    <div class="feature-icon w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mb-5">
+                        <span class="iconify text-xl text-slate-700" data-icon="mdi:lightbulb-on-outline"></span>
+                    </div>
+                    <h3 class="text-base font-semibold tracking-tight mb-2" data-en="Scene Lighting" data-it="Illuminazione Scena">Scene Lighting</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed" data-en="Add point lights, directional lights, and ambient lighting to set the mood. Real-time preview updates as you adjust." data-it="Aggiungi luci puntuali, direzionali e ambientali per creare l'atmosfera. Anteprima in tempo reale mentre modifichi.">Add point lights, directional lights, and ambient lighting to set the mood. Real-time preview updates as you adjust.</p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="feature-card bg-white border border-slate-200 rounded-xl p-8 animate-on-scroll delay-3">
+                    <div class="feature-icon w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mb-5">
+                        <span class="iconify text-xl text-slate-700" data-icon="mdi:video-export-outline"></span>
+                    </div>
+                    <h3 class="text-base font-semibold tracking-tight mb-2" data-en="Video Export" data-it="Esportazione Video">Video Export</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed" data-en="Render your scene to high-quality video directly in the browser. Choose resolution, frame rate, and format — no external tools needed." data-it="Renderizza la tua scena in video di alta qualità direttamente nel browser. Scegli risoluzione, frame rate e formato — nessun strumento esterno necessario.">Render your scene to high-quality video directly in the browser. Choose resolution, frame rate, and format — no external tools needed.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About / Why Sintekno -->
+    <section id="about" class="py-24 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <!-- Image -->
+                <div class="animate-on-scroll">
+                    <div class="relative rounded-2xl overflow-hidden shadow-xl">
+                        <img src="https://picsum.photos/seed/sintekno3deditor/800/600.jpg" alt="3D Scene" class="w-full aspect-[4/3] object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
+                        <div class="absolute bottom-6 left-6 right-6">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center">
+                                    <span class="iconify text-white text-xl" data-icon="mdi:play"></span>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-white" data-en="Scene Preview" data-it="Anteprima Scena">Scene Preview</p>
+                                    <p class="text-xs text-white/70" data-en="Real-time 3D viewport" data-it="Viewport 3D in tempo reale">Real-time 3D viewport</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text -->
+                <div>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4 animate-on-scroll" data-en="Why Sintekno" data-it="Perché Sintekno">Why Sintekno</p>
+                    <h2 class="text-2xl md:text-4xl font-semibold tracking-tight mb-6 animate-on-scroll delay-1" data-en="Because 3D shouldn't need a studio" data-it="Perché il 3D non dovrebbe richiedere uno studio">Because 3D shouldn't need a studio</h2>
+                    <div class="space-y-5">
+                        <p class="text-base text-slate-500 leading-relaxed animate-on-scroll delay-2" data-en="Traditional 3D video workflows are complex. You need multiple tools — a modeler, a scene compositor, a keyframe editor, a renderer — each with its own learning curve and price tag." data-it="I flussi di lavoro video 3D tradizionali sono complessi. Ti servono più strumenti — un modellatore, un compositore di scene, un editor di keyframe, un renderer — ognuno con la sua curva di apprendimento e il suo prezzo.">
+                            Traditional 3D video workflows are complex. You need multiple tools — a modeler, a scene compositor, a keyframe editor, a renderer — each with its own learning curve and price tag.
+                        </p>
+                        <p class="text-base text-slate-500 leading-relaxed animate-on-scroll delay-3" data-en="Sintekno was built with a simple belief: if you can model it in Blender, you should be able to animate and film it in your browser. No installs. No subscriptions. No compromises." data-it="Sintekno è nato da una convinzione semplice: se puoi modellarlo in Blender, dovresti poterlo animare e filmare nel tuo browser. Nessuna installazione. Nessun abbonamento. Nessun compromesso.">
+                            Sintekno was built with a simple belief: if you can model it in Blender, you should be able to animate and film it in your browser. No installs. No subscriptions. No compromises.
+                        </p>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="grid grid-cols-3 gap-4 mt-10">
+                        <div class="stat-card bg-white rounded-xl p-5 border border-slate-200 animate-on-scroll delay-3">
+                            <p class="text-2xl font-semibold text-slate-900">5+</p>
+                            <p class="text-xs text-slate-400 mt-1" data-en="Formats" data-it="Formati">Formats</p>
+                        </div>
+                        <div class="stat-card bg-white rounded-xl p-5 border border-slate-200 animate-on-scroll delay-4">
+                            <p class="text-2xl font-semibold text-slate-900">∞</p>
+                            <p class="text-xs text-slate-400 mt-1" data-en="Keyframes" data-it="Keyframe">Keyframes</p>
+                        </div>
+                        <div class="stat-card bg-white rounded-xl p-5 border border-slate-200 animate-on-scroll delay-5">
+                            <p class="text-2xl font-semibold text-slate-900">0€</p>
+                            <p class="text-xs text-slate-400 mt-1" data-en="To start" data-it="Per iniziare">To start</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="py-24">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="max-w-2xl mx-auto text-center mb-16">
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4 animate-on-scroll" data-en="How It Works" data-it="Come Funziona">How It Works</p>
+                <h2 class="text-2xl md:text-4xl font-semibold tracking-tight mb-5 animate-on-scroll delay-1" data-en="From model to video in four steps" data-it="Dal modello al video in quattro passaggi">From model to video in four steps</h2>
+            </div>
+
+            <div class="relative">
+                <!-- Vertical line -->
+                <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-px timeline-line -translate-x-1/2"></div>
+
+                <!-- Step 1 -->
+                <div class="relative grid md:grid-cols-2 gap-8 md:gap-16 mb-16 md:mb-20">
+                    <div class="md:text-right animate-on-scroll">
+                        <div class="inline-flex items-center gap-2 mb-4">
+                            <span class="text-xs font-semibold text-slate-300 bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center">01</span>
+                        </div>
+                        <h3 class="text-lg font-semibold tracking-tight mb-2" data-en="Import Your Model" data-it="Importa il Tuo Modello">Import Your Model</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed" data-en="Drag and drop your 3D model — GLB from Blender, GLTF, OBJ, or FBX. Sintekno parses everything automatically." data-it="Trascina e rilascia il tuo modello 3D — GLB da Blender, GLTF, OBJ o FBX. Sintekno analizza tutto automaticamente.">Drag and drop your 3D model — GLB from Blender, GLTF, OBJ, or FBX. Sintekno parses everything automatically.</p>
+                    </div>
+                    <div class="animate-on-scroll delay-1">
+                        <div class="bg-slate-50 rounded-xl p-6 border border-slate-100">
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="iconify text-2xl text-slate-400" data-icon="mdi:cloud-upload-outline"></span>
+                                <span class="text-sm font-medium text-slate-600" data-en="Drop files here" data-it="Trascina i file qui">Drop files here</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <span class="text-[10px] bg-slate-200 text-slate-600 px-2 py-1 rounded font-medium">.glb</span>
+                                <span class="text-[10px] bg-slate-200 text-slate-600 px-2 py-1 rounded font-medium">.gltf</span>
+                                <span class="text-[10px] bg-slate-200 text-slate-600 px-2 py-1 rounded font-medium">.obj</span>
+                                <span class="text-[10px] bg-slate-200 text-slate-600 px-2 py-1 rounded font-medium">.fbx</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Dot -->
+                    <div class="hidden md:flex absolute left-1/2 top-6 -translate-x-1/2 w-4 h-4 bg-white border-4 border-slate-900 rounded-full"></div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="relative grid md:grid-cols-2 gap-8 md:gap-16 mb-16 md:mb-20">
+                    <div class="md:order-2 animate-on-scroll">
+                        <div class="inline-flex items-center gap-2 mb-4">
+                            <span class="text-xs font-semibold text-white bg-slate-900 rounded-full w-8 h-8 flex items-center justify-center">02</span>
+                        </div>
+                        <h3 class="text-lg font-semibold tracking-tight mb-2" data-en="Build Your Scene" data-it="Crea la Tua Scena">Build Your Scene</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed" data-en="Position objects, add lights, set the environment. Use the 3D viewport to compose your shot exactly how you envision it." data-it="Posiziona gli oggetti, aggiungi luci, imposta l'ambiente. Usa il viewport 3D per comporre l'inquadratura esattamente come la immagini.">Position objects, add lights, set the environment. Use the 3D viewport to compose your shot exactly how you envision it.</p>
+                    </div>
+                    <div class="md:order-1 animate-on-scroll delay-1">
+                        <div class="bg-slate-50 rounded-xl p-6 border border-slate-100">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-slate-200 rounded-lg flex items-center justify-center">
+                                    <span class="iconify text-xl text-slate-500" data-icon="mdi:lightbulb-outline"></span>
+                                </div>
+                                <div class="flex-1 space-y-2">
+                                    <div class="flex items-center justify-between"><span class="text-xs text-slate-500">Intensity</span><span class="text-xs font-mono text-slate-700">0.85</span></div>
+                                    <div class="h-1.5 bg-slate-200 rounded-full"><div class="h-full w-[85%] bg-slate-700 rounded-full"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hidden md:flex absolute left-1/2 top-6 -translate-x-1/2 w-4 h-4 bg-white border-4 border-slate-900 rounded-full"></div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="relative grid md:grid-cols-2 gap-8 md:gap-16 mb-16 md:mb-20">
+                    <div class="md:text-right animate-on-scroll">
+                        <div class="inline-flex items-center gap-2 mb-4">
+                            <span class="text-xs font-semibold text-slate-300 bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center">03</span>
+                        </div>
+                        <h3 class="text-lg font-semibold tracking-tight mb-2" data-en="Animate with Keyframes" data-it="Anima con i Keyframe">Animate with Keyframes</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed" data-en="Set camera positions, rotate your models, adjust properties over time. The timeline gives you full control over every frame." data-it="Imposta posizioni della camera, ruota i modelli, regola le proprietà nel tempo. La timeline ti dà controllo totale su ogni frame.">Set camera positions, rotate your models, adjust properties over time. The timeline gives you full control over every frame.</p>
+                    </div>
+                    <div class="animate-on-scroll delay-1">
+                        <div class="bg-slate-50 rounded-xl p-6 border border-slate-100">
+                            <div class="flex gap-3 mb-3">
+                                <div class="w-3 h-3 rounded-full bg-cyan-400 mt-0.5"></div>
+                                <div class="w-3 h-3 rounded-full bg-indigo-400 mt-0.5"></div>
+                                <div class="w-3 h-3 rounded-full bg-purple-400 mt-0.5"></div>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="h-2 bg-cyan-100 rounded-full relative"><div class="absolute left-[10%] top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-cyan-500 rounded-full"></div><div class="absolute left-[60%] top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-cyan-500 rounded-full"></div><div class="absolute left-[90%] top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-cyan-500 rounded-full"></div></div>
+                                <div class="h-2 bg-indigo-100 rounded-full relative"><div class="absolute left-[20%] top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-indigo-500 rounded-full"></div><div class="absolute left-[75%] top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-indigo-500 rounded-full"></div></div>
+                                <div class="h-2 bg-purple-100 rounded-full relative"><div class="absolute left-[5%] top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-purple-500 rounded-full"></div><div class="absolute left-[40%] top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-purple-500 rounded-full"></div><div class="absolute left-[85%] top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-purple-500 rounded-full"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hidden md:flex absolute left-1/2 top-6 -translate-x-1/2 w-4 h-4 bg-white border-4 border-slate-900 rounded-full"></div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="relative grid md:grid-cols-2 gap-8 md:gap-16">
+                    <div class="md:order-2 animate-on-scroll">
+                        <div class="inline-flex items-center gap-2 mb-4">
+                            <span class="text-xs font-semibold text-white bg-slate-900 rounded-full w-8 h-8 flex items-center justify-center">04</span>
+                        </div>
+                        <h3 class="text-lg font-semibold tracking-tight mb-2" data-en="Export Your Video" data-it="Esporta il Tuo Video">Export Your Video</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed" data-en="Hit render and Sintekno outputs a polished video file. Choose your resolution and frame rate, then share your creation with the world." data-it="Premi render e Sintekno produce un file video rifinito. Scegli risoluzione e frame rate, poi condividi la tua creazione con il mondo.">Hit render and Sintekno outputs a polished video file. Choose your resolution and frame rate, then share your creation with the world.</p>
+                    </div>
+                    <div class="md:order-1 animate-on-scroll delay-1">
+                        <div class="bg-slate-50 rounded-xl p-6 border border-slate-100">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                    <span class="iconify text-xl text-emerald-600" data-icon="mdi:check-circle-outline"></span>
+                                </div>
+                                <span class="text-sm font-medium text-slate-700" data-en="Render Complete" data-it="Render Completato">Render Complete</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-slate-400">
+                                <span class="iconify" data-icon="mdi:filmstrip"></span>
+                                <span>1920×1080 · 60fps · MP4</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hidden md:flex absolute left-1/2 top-6 -translate-x-1/2 w-4 h-4 bg-white border-4 border-slate-900 rounded-full"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Creator Section -->
+    <section id="creator" class="py-24 bg-slate-900 text-white relative overflow-hidden">
+        <!-- Glow -->
+        <div class="absolute top-0 right-0 w-96 h-96 bg-indigo-500 rounded-full filter blur-[128px] opacity-10"></div>
+        <div class="absolute bottom-0 left-0 w-80 h-80 bg-cyan-500 rounded-full filter blur-[128px] opacity-10"></div>
+
+        <div class="relative max-w-7xl mx-auto px-6">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <!-- Text -->
+                <div>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4 animate-on-scroll" data-en="The Creator" data-it="Il Creatore">The Creator</p>
+                    <h2 class="text-2xl md:text-4xl font-semibold tracking-tight mb-6 animate-on-scroll delay-1">
+                        <span data-en="Meet " data-it="Conosci ">Meet </span><span class="font-serif italic">Adam Khayari</span>
+                    </h2>
+                    <div class="space-y-5">
+                        <p class="text-base text-slate-400 leading-relaxed animate-on-scroll delay-2" data-en="Adam Khayari is a passionate developer with a deep interest in 3D graphics, creative tools, and making complex technology accessible to everyone. Sintekno was born from his frustration with the fragmented 3D video production pipeline." data-it="Adam Khayari è uno sviluppatore appassionato con un profondo interesse per la grafica 3D, gli strumenti creativi e la democratizzazione della tecnologia complessa. Sintekno è nato dalla sua frustrazione con il frammentato pipeline di produzione video 3D.">
+                            Adam Khayari is a passionate developer with a deep interest in 3D graphics, creative tools, and making complex technology accessible to everyone. Sintekno was born from his frustration with the fragmented 3D video production pipeline.
+                        </p>
+                        <p class="text-base text-slate-400 leading-relaxed animate-on-scroll delay-3" data-en="&quot;I wanted to build something that lets anyone take a 3D model and turn it into a video — right in the browser, without installing gigabytes of software. Sintekno is that tool.&quot;" data-it="&quot;Volevo creare qualcosa che permettesse a chiunque di prendere un modello 3D e trasformarlo in un video — direttamente nel browser, senza installare gigabyte di software. Sintekno è quello strumento.&quot;">
+                            &quot;I wanted to build something that lets anyone take a 3D model and turn it into a video — right in the browser, without installing gigabytes of software. Sintekno is that tool.&quot;
+                        </p>
+                    </div>
+
+                    <!-- Social links -->
+                    <div class="flex items-center gap-4 mt-8 animate-on-scroll delay-4">
+                        <a href="#" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors duration-150">
+                            <span class="iconify text-lg" data-icon="mdi:github"></span>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors duration-150">
+                            <span class="iconify text-lg" data-icon="mdi:twitter"></span>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors duration-150">
+                            <span class="iconify text-lg" data-icon="mdi:linkedin"></span>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors duration-150">
+                            <span class="iconify text-lg" data-icon="mdi:web"></span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Image -->
+                <div class="animate-on-scroll delay-2 flex justify-center lg:justify-end">
+                    <div class="relative">
+                        <div class="w-72 h-72 md:w-80 md:h-80 rounded-2xl overflow-hidden shadow-2xl">
+                            <img src="https://picsum.photos/seed/adamkhayariportrait/400/400.jpg" alt="Adam Khayari" class="w-full h-full object-cover">
+                        </div>
+                        <!-- Decorative elements -->
+                        <div class="absolute -top-4 -right-4 w-24 h-24 border-2 border-white/10 rounded-xl -z-10"></div>
+                        <div class="absolute -bottom-4 -left-4 w-32 h-32 border-2 border-white/10 rounded-xl -z-10"></div>
+                        <!-- Badge -->
+                        <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-white text-slate-900 rounded-xl px-5 py-3 shadow-xl flex items-center gap-3">
+                            <span class="iconify text-xl text-slate-700" data-icon="mdi:code-braces"></span>
+                            <div>
+                                <p class="text-xs font-semibold" data-en="Developer & Creator" data-it="Sviluppatore e Creatore">Developer & Creator</p>
+                                <p class="text-[10px] text-slate-400">Sintekno</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack -->
+    <section class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="max-w-2xl mx-auto text-center mb-14">
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4 animate-on-scroll" data-en="Built With" data-it="Costruito Con">Built With</p>
+                <h2 class="text-2xl md:text-4xl font-semibold tracking-tight animate-on-scroll delay-1" data-en="Modern web tech, zero compromise" data-it="Tecnologia web moderna, zero compromessi">Modern web tech, zero compromise</h2>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-6 text-center animate-on-scroll delay-1 hover:shadow-md hover:border-slate-200 transition-all duration-300">
+                    <span class="iconify text-3xl text-slate-600 mb-3 mx-auto block" data-icon="simple-icons:threedotjs"></span>
+                    <p class="text-sm font-medium text-slate-700">Three.js</p>
+                    <p class="text-xs text-slate-400 mt-1" data-en="3D Rendering" data-it="Rendering 3D">3D Rendering</p>
+                </div>
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-6 text-center animate-on-scroll delay-2 hover:shadow-md hover:border-slate-200 transition-all duration-300">
+                    <span class="iconify text-3xl text-slate-600 mb-3 mx-auto block" data-icon="simple-icons:javascript"></span>
+                    <p class="text-sm font-medium text-slate-700">JavaScript</p>
+                    <p class="text-xs text-slate-400 mt-1" data-en="Core Logic" data-it="Logica Principale">Core Logic</p>
+                </div>
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-6 text-center animate-on-scroll delay-3 hover:shadow-md hover:border-slate-200 transition-all duration-300">
+                    <span class="iconify text-3xl text-slate-600 mb-3 mx-auto block" data-icon="simple-icons:webgl"></span>
+                    <p class="text-sm font-medium text-slate-700">WebGL</p>
+                    <p class="text-xs text-slate-400 mt-1" data-en="GPU Accelerated" data-it="Accelerato via GPU">GPU Accelerated</p>
+                </div>
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-6 text-center animate-on-scroll delay-4 hover:shadow-md hover:border-slate-200 transition-all duration-300">
+                    <span class="iconify text-3xl text-slate-600 mb-3 mx-auto block" data-icon="simple-icons:html5"></span>
+                    <p class="text-sm font-medium text-slate-700">Web Codecs</p>
+                    <p class="text-xs text-slate-400 mt-1" data-en="Video Export" data-it="Esportazione Video">Video Export</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="cta" class="py-24 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="relative bg-slate-900 rounded-3xl overflow-hidden px-8 py-16 md:px-16 md:py-24 text-center">
+                <!-- Glow -->
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-indigo-500 rounded-full filter blur-[128px] opacity-15"></div>
+
+                <div class="relative">
+                    <h2 class="text-2xl md:text-4xl lg:text-5xl font-semibold text-white tracking-tight mb-5 animate-on-scroll" data-en="Ready to create in 3D?" data-it="Pronto a creare in 3D?">Ready to create in 3D?</h2>
+                    <p class="text-base md:text-lg text-slate-400 max-w-xl mx-auto mb-10 animate-on-scroll delay-1" data-en="Join the waitlist and be among the first to experience Sintekno — the browser-based 3D video editor." data-it="Iscriviti alla waitlist e sii tra i primi a provare Sintekno — l'editor video 3D basato sul browser.">
+                        Join the waitlist and be among the first to experience Sintekno — the browser-based 3D video editor.
+                    </p>
+
+                    <!-- Email form -->
+                    <div class="max-w-md mx-auto flex flex-col sm:flex-row gap-3 animate-on-scroll delay-2">
+                        <input type="email" id="emailInput" placeholder="your@email.com" class="flex-1 px-5 py-3.5 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-white/40 transition-colors">
+                        <button onclick="handleSubscribe()" class="inline-flex items-center justify-center gap-2 bg-white text-slate-900 text-sm font-medium px-6 py-3.5 rounded-lg hover:bg-slate-50 transition-colors duration-150 whitespace-nowrap">
+                            <span data-en="Join Waitlist" data-it="Iscriviti">Join Waitlist</span>
+                            <span class="iconify" data-icon="mdi:arrow-right"></span>
+                        </button>
+                    </div>
+                    <div id="subscribeMsg" class="mt-4 text-sm hidden"></div>
+                    <p class="text-xs text-slate-500 mt-5 animate-on-scroll delay-3" data-en="No spam. We'll only notify you when Sintekno is ready." data-it="Niente spam. Ti notificheremo solo quando Sintekno sarà pronto.">No spam. We'll only notify you when Sintekno is ready.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-100 py-12">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <!-- Logo -->
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
+                        <span class="iconify text-white text-sm" data-icon="mdi:cube-outline"></span>
+                    </div>
+                    <span class="text-base font-semibold tracking-tight">Sintekno</span>
+                </div>
+
+                <!-- Links -->
+                <div class="flex items-center gap-6">
+                    <a href="#features" class="text-sm text-slate-400 hover:text-slate-600 transition-colors" data-en="Features" data-it="Funzionalità">Features</a>
+                    <a href="#about" class="text-sm text-slate-400 hover:text-slate-600 transition-colors" data-en="About" data-it="Chi siamo">About</a>
+                    <a href="#creator" class="text-sm text-slate-400 hover:text-slate-600 transition-colors" data-en="Creator" data-it="Creatore">Creator</a>
+                </div>
+
+                <!-- Copyright -->
+                <p class="text-xs text-slate-400">&copy; <span id="year"></span> Sintekno by Adam Khayari</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Set year
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Language system
+        let currentLang = 'en';
+
+        function setLang(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang;
+
+            // Update buttons
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('text-slate-500');
+            });
+            event.target.classList.add('active');
+            event.target.classList.remove('text-slate-500');
+
+            // Update all translatable elements
+            document.querySelectorAll('[data-en]').forEach(el => {
+                const text = el.getAttribute(`data-${lang}`);
+                if (text) el.textContent = text;
+            });
+        }
+
+        // Mobile menu
+        const menuToggle = document.getElementById('menuToggle');
+        const menuClose = document.getElementById('menuClose');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const menuOverlay = document.getElementById('menuOverlay');
+        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+
+        function openMenu() {
+            mobileMenu.classList.add('open');
+            menuOverlay.classList.remove('hidden');
+            requestAnimationFrame(() => menuOverlay.style.opacity = '1');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMenu() {
+            mobileMenu.classList.remove('open');
+            menuOverlay.style.opacity = '0';
+            setTimeout(() => {
+                menuOverlay.classList.add('hidden');
+                document.body.style.overflow = '';
+            }, 300);
+        }
+
+        menuToggle.addEventListener('click', openMenu);
+        menuClose.addEventListener('click', closeMenu);
+        menuOverlay.addEventListener('click', closeMenu);
+        mobileNavLinks.forEach(link => link.addEventListener('click', closeMenu));
+
+        // Scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+        // Navbar scroll effect
+        let lastScroll = 0;
+        const navbar = document.getElementById('navbar');
+
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+            if (currentScroll > 100) {
+                navbar.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+            } else {
+                navbar.style.boxShadow = 'none';
+            }
+            lastScroll = currentScroll;
+        });
+
+        // Active nav link on scroll
+        const sections = document.querySelectorAll('section[id]');
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 120;
+                if (window.pageYOffset >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('nav-active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('nav-active');
+                }
+            });
+        });
+
+        // Email subscribe
+        function handleSubscribe() {
+            const email = document.getElementById('emailInput').value;
+            const msg = document.getElementById('subscribeMsg');
+            if (!email || !email.includes('@')) {
+                msg.classList.remove('hidden', 'text-emerald-400');
+                msg.classList.add('text-red-400');
+                msg.textContent = currentLang === 'it'
+                    ? 'Per favore inserisci un\'email valida.'
+                    : 'Please enter a valid email address.';
+                return;
+            }
+            msg.classList.remove('hidden', 'text-red-400');
+            msg.classList.add('text-emerald-400');
+            msg.textContent = currentLang === 'it'
+                ? '✓ Ti sei iscritto con successo!'
+                : '✓ You\'re on the list!';
+            document.getElementById('emailInput').value = '';
+        }
+
+        // Enter key for email
+        document.getElementById('emailInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSubscribe();
+        });
+    </script>
+</body>
+</html>
